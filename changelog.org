@@ -798,3 +798,7 @@ I've realized that "LogViewChanges -" prefix is now redundant as folder is used 
 **** =11:58= regression in customgui.datagrid2 searchbox
 spacebar search AND operator stoppoed working - requries prompt fixing
 customgui.datagrid1 works fine
+*** 12
+**** =00:00= setup git repo, initial commit
+**** =15:57= fixed || OR and whitespace AND operators in DataGrid2
+likely will move detailed changes to git log from now on

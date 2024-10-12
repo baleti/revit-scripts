@@ -81,37 +81,59 @@ public partial class CustomGUIs
                                            .Select(term => term.Substring(1))
                                            .ToList();
 
-            // Step 2: Extract the inclusion terms separated by '||'
-            var inclusionPart = searchText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                                          .Where(term => !term.StartsWith("!"))
-                                          .FirstOrDefault();
-            string[] inclusionTerms = inclusionPart?.Split(new[] { "||" }, StringSplitOptions.None) ?? new string[0];
+            // Step 2: Extract inclusion terms (terms not starting with '!')
+            var searchTerms = searchText.Split(new[] { "||" }, StringSplitOptions.RemoveEmptyEntries)
+                                        .Select(query => query.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
 
-            // Step 3: Filter entries
+            // Step 3: Filter entries based on AND/OR/NOT logic
             var filtered = entries.Where(entry =>
             {
                 // Exclude entries containing any of the exclusion terms
                 bool exclude = exclusionTerms.Any(exclTerm =>
                     entry.Values.Any(value => value != null && value.ToString().IndexOf(exclTerm, StringComparison.OrdinalIgnoreCase) >= 0));
 
-                // If exclusion terms match, skip this entry
                 if (exclude)
                 {
-                    return false;
+                    return false; // Skip this entry if any exclusion terms match
                 }
 
-                // Match any of the inclusion terms (if any inclusion terms are provided)
-                if (inclusionTerms.Length > 0)
+                // Check if the entry satisfies all AND conditions (terms in OR groups)
+                foreach (var orQuery in searchTerms)
                 {
-                    return inclusionTerms.Any(term =>
-                        entry.Values.Any(value => value != null && value.ToString().IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0));
+                    bool orQueryMatched = true;
+                    foreach (var term in orQuery)
+                    {
+                        bool isNegation = term.StartsWith("!");
+                        string actualTerm = isNegation ? term.Substring(1) : term;
+                        bool termFound = false;
+
+                        foreach (var propertyName in propertyNames)
+                        {
+                            var propertyValue = entry.ContainsKey(propertyName) ? entry[propertyName]?.ToString() : null;
+                            if (propertyValue != null && propertyValue.IndexOf(actualTerm, StringComparison.OrdinalIgnoreCase) >= 0)
+                            {
+                                termFound = true;
+                                break; // Term found in any property, break inner loop
+                            }
+                        }
+
+                        if (isNegation ? termFound : !termFound)
+                        {
+                            orQueryMatched = false;
+                            break; // If term does not match in AND condition, break
+                        }
+                    }
+
+                    if (orQueryMatched)
+                    {
+                        return true; // At least one OR group matches, include the entry
+                    }
                 }
 
-                // If there are no inclusion terms, include all non-excluded entries
-                return true;
+                return false; // If no OR group matches, exclude the entry
             }).ToList();
 
-            // Clear and repopulate DataGridView with filtered data
+            // Update DataGridView with filtered results
             dataGridView.Rows.Clear();
             foreach (var item in filtered)
             {
@@ -133,7 +155,6 @@ public partial class CustomGUIs
             // Adjust form size
             dataGridView.AutoResizeColumns();
             int requiredWidth = dataGridView.Columns.GetColumnsWidth(DataGridViewElementStates.Visible) + SystemInformation.VerticalScrollBarWidth + 50;
-
             int availableWidth = Screen.PrimaryScreen.WorkingArea.Width - 20;
             form.Width = Math.Min(requiredWidth, availableWidth);
 
@@ -282,7 +303,6 @@ public partial class CustomGUIs
             else if (e.KeyCode == Keys.Enter)
             {
                 dataGridView.Focus();
-//                dataGridView.Rows[0].Selected = true;
                 foreach (DataGridViewRow selectedRow in dataGridView.SelectedRows)
                 {
                     Dictionary<string, object> selectedEntry = new Dictionary<string, object>();
