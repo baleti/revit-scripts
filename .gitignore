@@ -1,0 +1,41 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.rsuser
+*.sln.docstates
+
+# Build files
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.cache
+*.ilk
+*.idb
+*.log
+
+# Revit specific
+*.addin
+Revit_addins/
+
+# NuGet packages
+packages/
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+*.nugetprops
+*.nuget.targets
+
+# Rider / ReSharper
+*.DotSettings.user
+*.resharper
+*.sln.DotSettings
+
+# Miscellaneous
+*.tlog
+*.dbmdl
+Thumbs.db
+ehthumbs.db

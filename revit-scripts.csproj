@@ -1,0 +1,164 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{5A9031B2-7861-441E-944B-DCC044F8F8FA}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>scripts</RootNamespace>
+    <AssemblyName>scripts</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="RevitAPI">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2024\RevitAPI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="RevitAPIUI">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2024\RevitAPIUI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="3DSectionBoxFromView.cs" />
+    <Compile Include="CloseCurrentView.cs" />
+    <Compile Include="CloseViews.cs" />
+    <Compile Include="CopyStructuralFoundationsFromLinkedModel.cs" />
+    <Compile Include="CreateDraftingViewsFromSheetNames.cs" />
+    <Compile Include="DataGrid1.cs" />
+    <Compile Include="CutGeometryWithGroup.cs" />
+    <Compile Include="DataGrid2.cs" />
+    <Compile Include="DeleteRevisionCloudsFromSheets.cs" />
+    <Compile Include="DrawCircleAtOrigin.cs" />
+    <Compile Include="DrawCropRegion.cs" />
+    <Compile Include="SelectFamilyTypesInCurrentView.cs" />
+    <Compile Include="SelectFamilyTypesInProject.cs" />
+    <Compile Include="SelectFamilyTypeInstancesInCurrentView.cs" />
+    <Compile Include="ListSheets.cs" />
+    <Compile Include="ListSheetsWithAllParameters.cs" />
+    <Compile Include="ListSheetsByRevisions.cs" />
+    <Compile Include="ListSheetsByRevisionsWhereRevisionIsByCloud.cs" />
+    <Compile Include="ListSheetsWithSelectedLegend.cs" />
+    <Compile Include="SelectFamilyTypeInstancesInProject.cs" />
+    <Compile Include="ListTypesInCurrentProject.cs" />
+    <Compile Include="ListTypesByCategory.cs" />
+    <Compile Include="MoveViewToSheet.cs" />
+    <Compile Include="PasteInSamePlaceToViews.cs" />
+    <Compile Include="SelectAssociatedDimensions.cs" />
+    <Compile Include="SelectDoubleSwitchedSocketOutletInLink.cs" />
+    <Compile Include="SelectModelGroup.cs" />
+    <Compile Include="SetParameterValueToSelectedFamilyTypesInCurrentFamily.cs" />
+    <Compile Include="SetRevisionsToCurrentSheet.cs" />
+    <Compile Include="SetRevisionsToSheetsWhereRevisionIsByCloud.cs" />
+    <Compile Include="SetRevisionsToSheetsWhereRevisionIsByCloudOrBySheet.cs" />
+    <Compile Include="SetRevisionsToSheets.cs" />
+    <Compile Include="DrawRevisionCloudAroundSelectedElements.cs" />
+    <Compile Include="DrawSectionLine.cs" />
+    <Compile Include="DuplicateSheetsWithDetailing.cs" />
+    <Compile Include="DuplicateTypesHandler.cs" />
+    <Compile Include="DuplicateViews.cs" />
+    <Compile Include="ListDetailItemsByKeynote.cs" />
+    <Compile Include="ListViewsByDetailItemSelected.cs" />
+    <Compile Include="Resize3DSectionBox.cs" />
+    <Compile Include="ExportElementsToRvt.cs" />
+    <Compile Include="ExportSchedule.cs" />
+    <Compile Include="ExportViewTemplatesToRvt.cs" />
+    <Compile Include="ListSheetsByDetailItemSelected.cs" />
+    <Compile Include="IncrementSelectedSheetNumbers.cs" />
+    <Compile Include="InvokeAddinCommand.cs" />
+    <Compile Include="InvokeRevitCommand.cs" />
+    <Compile Include="ListChildViews.cs" />
+    <Compile Include="ListElements.cs" />
+    <Compile Include="ImportViewTemplatesFromRvt.cs" />
+    <Compile Include="ListFamilyTypes.cs" />
+    <Compile Include="LogViewChanges.cs" />
+    <Compile Include="NewFamily.cs" />
+    <Compile Include="OpenLastSessionViews.cs" />
+    <Compile Include="OpenSavedViews.cs" />
+    <Compile Include="OpenSheet.cs" />
+    <Compile Include="OpenViews.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Resize3DSectionBoxHorizontally.cs" />
+    <Compile Include="Resize3DSectionBoxVertically.cs" />
+    <Compile Include="SaveOpenedViews.cs" />
+    <Compile Include="SectionBox3DFromCurrentView.cs" />
+    <Compile Include="SelectDetailGroupsBySheets.cs" />
+    <Compile Include="SelectAllElementsInView.cs" />
+    <Compile Include="SelectCategories.cs" />
+    <Compile Include="SelectAllElementsInViewAndInGroups.cs" />
+    <Compile Include="SelectDetailItemsWithKeynote.cs" />
+    <Compile Include="SelectLinkedModel.cs" />
+    <Compile Include="SetCustomScaleParameterForSheets.cs" />
+    <Compile Include="SwitchToLastView.cs" />
+    <Compile Include="SwitchViewByHistory.cs" />
+    <Compile Include="SwitchView.cs" />
+    <Compile Include="SynchronizeAllViews.cs" />
+    <Compile Include="SynchronizeSelectedViews.cs" />
+    <Compile Include="TagElementsInViews.cs" />
+    <Compile Include="TagSelectedElements.cs" />
+    <Compile Include="TagElementsInSelectedViews.cs" />
+    <Compile Include="test.cs" />
+    <Compile Include="test2.cs" />
+    <Compile Include="test3.cs" />
+    <Compile Include="test4.cs" />
+    <Compile Include="test5.cs" />
+    <Compile Include="ToggleLevels2D.cs" />
+    <Compile Include="ToggleWallLocationLine.cs" />
+    <Compile Include="TraceAllLines.cs" />
+    <Compile Include="TraceRooms.cs" />
+    <Compile Include="ZoomSelected.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>if "$(ConfigurationName)" == "Release" (
+    xcopy "$(TargetDir)$(TargetName).dll" "C:\Users\Daniel Krajnik\AppData\Roaming\Autodesk\Revit\Addins\2024" /Y
+)
+</PostBuildEvent>
+  </PropertyGroup>
+</Project>

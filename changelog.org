@@ -1,0 +1,800 @@
+* 2024
+** March
+*** 25
+**** =19:40= switch_window
+- added searchbox with basic fuzzysearching 
+  still needs to handle backspace (right now it clears the list blank and requires rerun)
+- added autoresize width to longest name
+- set it to open in the screen center
+*** 26
+**** =19:40= family_refs
+- got basic functionality working for detail itesm - it finds relevant views and opens them
+  I need to set it so that it opens sheets first if a view is placed
+  it was correctly suggested that detail items are easier because they are view dependent - searching is fairly fast. It may not be the same for 3d objects
+** April
+*** 04
+**** =19:57= refactoring
+- moved each class to a separate .cs file
+each class (and so each file) corresponds to a command (invoked from a hotkey or from a list in Add-Ins > External Tools)
+that seems to follow common conventions
+a single file became unmanagable
+in the end it all compiles to a single .dll (as long as they are in the same namespace)
+- started CutWithModelGroupCommand command
+doesn't work so far - nothing happens
+*** 05
+**** =13:49= SwitchWindow UX improvements 
+- pressing down arrow in searchbox immediately selects first entry in listbox, like in Everything from voidtools)
+- pressing enter in searchbox immediately activates the first entry
+- TODO FilterListBoxItems function incorrectly handles something and the list isn't refrshing after pressing backspace
+- TODO FilterListBoxItems make it fuzzy search space separated (like Everything from voidtools)
+*** 06
+**** =19:57= CutGeometryWithGroup
+- stuck trying to cut toposolid with every element of a group
+can't figure out how to obtain solids from elements/elementgeometries
+*** 07
+**** =18:00= CutGeometryWithGroup
+- got it working after a long struggle with misconceived BooleanOperationsUtils.ExecuteBooleanOperation function
+it turned out that I should have used SolidSolidCutUtils.AddCutBetweenSolids
+it's running as fast as trying to cut a single element - operations are batched in a single transaction
+https://forums.autodesk.com/t5/revit-api-forum/get-solid-from-familyinstance-keeps-returning-null/m-p/12692634/highlight/true#M78060
+*** 08
+**** =20:00= SynchronizeViews
+- got camera to move to an arbitrary project coordinate on the plan
+  now need to obtain current coordinate of the view and move other plan views to it
+- got it working (prompted ChatGPT in the right direction)
+  views which are in different aspect ratio (tiles) appear to scale by height (but it may as well be good enough)
+  interestingly enough it doesn't just work across views of the same type - it can synchronize plans, sections, elevations and 3d views
+    it doesn't yet though read 3d view position correctly
+  https://forums.autodesk.com/t5/revit-architecture-forum/syncing-camera-positioning/td-p/9315785
+*** 10
+**** =23:59= SelectCategory
+- worked for hardcoded value, so tried and failed to add the listbox/searchbox again, but it quickly got too convoluted
+- started refactoring it so to create a single function that takes list of strings and resturns a reduced list of strings
+- not sure yet how to handle callbacks to functions when key is pressed - maybe if they are empty return string, but if a value is passed call it
+  likely this will change
+*** 15
+**** =18:30= CopyFromLinkedModel
+- continued refactoring listbox/searchbox
+  - added mutliselect
+- realized that Winform listbox offers a multicolumn mode and that it operates on the actual items (objects) and not strings, which should map better to OO nature or Revit
+  - this should allow me to replicate voidtools everything style of selection
+**** =20:00= SelectCategory
+- couldn't list categories of all objects in the current document
+ it would require iterating through all the objects which can take too long
+- changed ListBoxSearchBox type to generics, so it returns list of any objects
+ I imagine the next step to be taking list of parameters as an argument to read into a multicolumn listbox
+ it should be really useful for SwitchWindow, which could benefit from sheet number
+- need to fix searchbox as it doesn't work after this change
+*** 16
+**** =18:30= ListBoxSearchBox
+- chatgpt correction, datagrid is the correct way to create tables in winforms (not multicolumn listbox)
+**** =18:30= DataGridSelection
+- converted ListBoxSearchBox from listbox to datagrid
+- added previous functionality (key handling, multiselection and automatic resizing)
+- searchbox fix
+  you can press backspace and retry queries without having to restart
+- set datagrid to read-only
+- can't figure out why it doesn't return selected objects
+*** 17
+**** =20:16= DataGridSelection
+- figured out that I've incorrectly prompted chatgpt for checking passed objects for their properties
+ - it's unncessary as datagriview reads (and binds rows) properties automatically when objects are bound as datasource
+- got autoresize to work again
+ - needed to wrap it into event form.Load to run code only when the form is ready
+  - not sure why it wasn't needed before
+- get serachbox to work
+ - took quite a few retries and in the end I again ended up picking chatgpt's solution
+  - had to be only slightly modfied not to pick the list that it meant to be returned
+ - resorted to performing searches based on the list of properties supplied to the function
+  - as this list was meant to be used anyway for selecting columns it may as well be used for searching
+   - I couldn't get it to work so that it would always just search through all available columns
+    - it may possibly cause issues later on
+- didn't get column selection to work yet
+*** 18
+**** =19:00= CloseViews
+- done, requires GUI prompt
+**** =21:20= CustomGUI.DataGrid
+- after multiple attempts managed to prompt chatgpt correctly to specify which columns to display
+ - found confirmation that it should be possible in documentation (https://learn.microsoft.com/en-us/dotnet/desktop/wpf/controls/datagrid?view=netframeworkdesktop-4.8)
+ - toggling AutoGenerateColumns to false hides any other columns
+- minor fixed to keyhandling
+ - down arrow on searchbox goes directly to the second row (enter already selects the first row)
+*** 19
+**** =19:00= ToggleLevels2D
+- using chatGPT created this function in only about 20 minutes
+- it got the actual function wrong, but it was easy to find it online
+- got confused when it didn't work at first, but I've realized that 2D/3D extents in Revit operate independently on both ends of the levels in view and I just needed to add the second end to the for loop
+**** =21:50= CustomGUIs.DataGrid
+- added OR | operator to searchbox same as in voidtools everything to search on multiple terms
+ - it took a single chatgpt prompt, very satisfying from productivity standpoint
+**** =22:35= SelectCategoriesInView
+- got confused by FilteredElementCollector selecting all elements (default behavior if invoked without other qualifiers)
+**** =23:06= SelectCategoriesInView
+- got it to work
+- took half an hour to find a way to select multiple categories, because I couldn't find a way to do it directly in FilteredElementCollector
+so I've resorted to creating a list of elementIds and adding them category by category
+it still doesn't seem to make a difference in terms of speed
+- as an added bonus I've realized that the usual way of selecting categories (dragging a selection window over the area and filtering elements out) doesn't work with elements inside groups, while my method includes them
+ - maybe it will be desirable in the future to disable selection inside model groups for performance purposes
+ - however worksets seem like a better or more correct way to manage performance of large models
+**** =23:43= SelectAllElementsInView
+- I don't believe that it'll be ever used, but it's meant to be a joke claiming that the most basic feature (ctrl+a to select everything) has finally been added
+- realized that external command can't run while editing groups - a serious limitation
+**** =00:12= SwitchWindow
+- refactored to use the new DataGrid instead of the old listbox
+- turned out that there is no "category" property of built into view objects to use as a column, but "title" property can be used to achieve the same effect
+ - title is always prepended with view type (e.g. Sheet: or Drafting View:) and also follows the same convention as everything (type:)
+- still need to implement space as an AND search
+*** 20
+**** =19:08= access .rvt file contents
+- briefly explored idea of reading .rvt files directly only to find out that it requires loading them in their entirety each time anyway
+**** =19:22= CloseViews
+- realized that I've somehow completely missed the ViewType property
+ - using Title however also provides sheet number, so I've decided to use it instead
+  - this slightly defeats the purpose of datagrid (as opposed to a plain listbox)
+ - I've ended up adding ViewType columns after all
+  - FloorPlan view types weren't included in the title
+  - added it to SwitchView and the new OpenViews as well
+**** =21:05= CustomGUIs DataGrid
+- added AND operator
+ - typing space will now search for multiple substrings
+ - managed to do it without breaking the previously added | OR operator
+**** =21:27= CustomGUIs DataGrid
+- fixed the bug when the form's height was longer than the screen its top appeared in the center 
+ - now it goes full height of the screen when it overflows the screen
+*** 21
+**** =13:13= CustomGUIs DataGrid
+- sort on the first column
+**** =13:29= ExportElementsToRvt
+- couldn't get it to work
+ - ModificationOutsideTransactoionException
+ - doesn't work for view-dependent elements (legends, detail groups)
+**** =14:07= ExportViewTemplatesToRvt
+- couldn't get it to work neither
+ - ModificationOutsideTransactoionException
+**** =14:51= ExportViewTemplatesToRvt
+- got help to solve the transation exception issue - incorrectly put existing document into the transaction instead of the new one
+ - also moved creation/saving of the new document out of the transaction block
+ - https://forums.autodesk.com/t5/revit-api-forum/modificationoutsidetransactionexception-when-copying/m-p/12723267#M78335
+- copying viewtemplate appears to pull a lot of other objects with it
+ - I found a way to suppress duplicate type warnings to speed up process of debuggin this issue
+  https://forums.autodesk.com/t5/revit-api-forum/remove-warning-message-duplicate-types/m-p/8786636#M38700
+**** =19:13= ImportViewTemplatesFromRvt
+- equivalent to the export
+- took no time to write, only needed to shift .Close method for the source document as chatgpt closed it too soon
+** May
+*** 03
+**** =18:30= FilterSelectedElements
+- started; aiming to create quick schedules out of currently selected elements
+- hitting a problem with too many parameters, not sure which one should be displayed
+- will need to also process some of them (only getting workset ids instead of workset names)
+- after some deliberation I've realized that I will need to look into alternate ways of passing Datasource to dataGridView
+ - perhaps something that doesn't require properties to exist on the objects
+**** =19:25= CutomGUI.DataGrid
+- gave height slight padding if it exceeds half the screen's "working size"
+*** 04
+**** =15:48= FilterSelectedElements
+- finally found a way to solve the issue of "unpacking" properties into additional columns
+ - needed to get ChatGPT 4 to suggest the correct approach
+ - instead of unpacking it in DataGrid function (via delegates) or trying to add custom properties to existing objects this code copies elements into "CustomElement" objects and passes them to DataGrid instead
+**** =18:12= SelectAllElementsInView
+- failed to create a quicker alternative, every time it ended up being two times slower than the regular pickbox window selection
+ - raised it on the forum: https://forums.autodesk.com/t5/revit-api-forum/setelementids-two-times-slower-than-revit-s-window-selection/td-p/12752751
+**** =18:52= SelectCategoriesInView
+- modified it to list only categories of elements visible in the current view
+ - after a few unsuccessful attempts of selecting objects I've realized how quick selecting all elements is via FilteredElementCollector itself, which made me revisit and successfully modify this function
+ - works fast even on large views (tested on a GA Plan)
+**** =21:47= FilterSelectedElements
+- managed to add Parameters as columns
+ - they need to be passed as a dictionary in "proxy" objects "unpacked" dynamically in DataGridView
+ - managed at the same time not break other functions relying on DataGridView
+ - DataGridView is slowly turning into spaghetti code
+ - most of them turned out to be empty
+  - now need to only display non-empty ones
+**** =21:47= FilterSelectedElements
+- it turns out that rows weren't populating, so instead of using objects I will try to rewrite DataGrid to take some more flexible data structure like list or dictionary
+- issues stem from the fact that C# is a statically typed language and won't allow you to dynamically add properties
+**** =00:21= FilterSelectedElements
+- managed to rewrite DataGrid method taking list of dictionaries instead of list of objects
+ - added new method with the same name, just with different signature (method overloading)
+- it seems a bit faster
+- a lot of functionality of datagrid wasn't rewritten and so I couldn't test if selection of elements still works
+- another thing is the sheer size of parameter tables
+ - will require some more logic in searchbox to filter not only rows, but also columns
+  - try using $ (dollar sign) as a symbol designating column search instead of row search
+  - keep | symbol to delimit OR queries
+*** 05
+**** =10:28= FilterSelectedElements
+- rewrote keyhandling and confirmed that both functions now work correctly in effect letting user to filter down selection of objects
+**** =10:49= FilterSelectedElements
+- brought back logic to resize the window
+ - needed to add width handling due to the amount of parameters
+**** =11:45= FilterSelectedElements
+- adding better window positioning
+ - center of the screen with slight padding
+ - parameter to toggle span across multiple screens
+  - run into interesting issue when method overloading wasn't letting me to add an optional paramater as it was picking another method
+   - I simply won't make this parameter optional
+  - (ChatGPT4) refactored it into two functions, one to span winform across all available monitors and one to show it only on the current monitor
+   - it did it in an interesting way whereas one abstract class implements IExternalCommand and the two classes inherit from it and override an abstract boolean variable
+**** =12:19= FilterSelectedElements
+- realized that datagrid out of the box can be navigated horizontally with a subset of farily common keybindings
+ - for example ctrl plus right arrow key get you to the right most far cell
+- I will still try to add shift plus arrow keys for immediate scroll as I think it would be more practical
+**** =12:32= FilterSelectedElements
+- realized that datagrid out of the box can sort rows by clicking on column header names
+ - that might justify some extra complexity
+**** =13:11= FilterSelectedElements
+- don't select anything if Escape key was pressed
+ - updated DataGrid form kept returning entries even if escape was pressed
+  - I had to introduce an extra variable/flag to check if Escape wasn't pressed and avoid extracting filtered entries at end
+**** =13:58= FilterSelectedElements
+- realized that another version should be added to filter all elements visible in view, not just those currently selected
+**** =17:22= ListElements
+- renamed commands to "ListElements"
+ - ListSelectedElements
+ - ListSelectedElementsSpanAllScreens
+ - ListAllElementsInView
+**** =18:41= SelectCategories
+- split SelectCategories into two commands:
+ - SelectCategories
+ - SelectCategoriesInView
+- now the first one scans all elements in the entire project, list available categories and selects them
+- it may be useful when combined with ListSelectedElements to create quick schedules
+- I still need to clean up ListSelectedElements to be faster and show more relevant information
+**** =19:00= ListElements
+- replaced OwnerViewId with OwnerViewName and GroupId with GroupName
+ - compute them before creating dictionary that gets passed to elementData List
+**** =19:20= DataGridView
+- added autoreisizing of the columns' width
+- manual resizing of the width now is blocked
+ - hopefully it shouldn't be an issue
+**** =19:43= DataGridView
+- adjusted left and arrow keys handling in combination with shfit for speed control
+- handling current cell selection became too complicated, but it may not matter if hopefully all horizontal motion keys (left/right arrow keys) are now overwritten
+**** =19:58= DataGridView
+- fixed a bug introduced with the new left/right arrow key scrolling code using ColumnIndex instead of HorizontalScrollingOffset
+ - it could get stuck if keys were pressed too many times after reaching datagrid ends
+ - it should be smoother now as well as it scroll a constant amount instead of full column widths
+**** =20:41= SelectLinkedModel
+- added command to select linked models with DataGridView
+**** =20:50= ListElements
+- under impression that there won't be many more columns that will need to be added
+ - perhaps constituent materials
+ - perhaps location in XYZ?
+  - that would require some ranges in queries
+  - it might be useful for selecting objects across multiple floors in similar locations
+**** =21:20= ListElements
+- split them further, because loading all parameters was too slow for DataGrid
+ - ListSelectedElements
+ - ListSelectedElementsWithParameters
+ - ListSelectedElementsWithParametersSpanAllScreens
+ - ListAllElementsInView
+  - this time ChatGPT ended up only complicating it again, so I've resorted to a simple if statement
+   - chatGPT did help though with cleaning it up
+- still need to make these parameters combine all selected elements instead of just the first one
+- showing the winform without parameters proved to display some resizing issues when the table width is smaller than the screen width
+ - solving them now
+**** =21:34= oops
+- accidentally run SelectAllElementtInView on the full model in 3D instead of ListElementsInView
+ - going to make supper while it loads
+ - turned out to not be this bad - done after about 5 minutes
+**** =21:58= DataGrid
+- added automatic width resizing for the window
+- couldn't get it to work for height - window kept shifting towards the center of the screen
+ - changed background color instead
+  - confusingly enough needed to change background of the datagrid and not of the winform container itself
+**** =22:05= DataGrid
+- managed to set sorting of the datagrid by default to be on the first column in descending order
+- I tend to sort files in voidtools Everything by date modified as well as a default
+*** 07
+**** =11:00= ListElements
+- added ListAllElementsInViewWithParameters
+ - starting to notice a lot of lag
+  - look for a faster alternative
+   - checked if Everything voidtools GUI is available as a library, but sadly it's not
+    - void recommended looking into "virtual listview"
+- realized that I will need to create ListAllElementsByCategory anyway
+ - parameters are grouped by categories, so it's in many cases unnecessary to add other parameters to columns
+  - I imagine this would fisrt pop the same selection window as for SelectCategories and then DataGrid for all elements (to select them)
+   - maybe it wouldn't be necessary if GUI was faster and allowed you to dynamically filter by columns
+**** =16:30= ListElements complex querying
+- realized that more expressive query language is needed (e.g. Xpath, selenium, python requests)
+ - for example show a shared parameter (tenure) of a sibling (room) in a group for all model groups with name "bathroom"
+ - maybe it will be easier to write custom scripts to compute new parameters for objects
+ - or export revit to excel/sqlite, perform queries there and pull them back to display in revit
+**** =21:31= ListElements
+- added error handling in case no elements are selected
+**** =22:10= ZoomSelected
+- inspired by Rhino ZS command
+- took longer than expected, because the default uiDoc.ShowElements method was suspiciously slow
+- prompted ChatGPT to write a custom one by calculating boundingbox and using the previous ZoomAndCenterRectangle (UIView)
+*** 08
+**** =21:39= SwitchViews
+- split and extended into new commands:
+ - SwitchViewByTitle
+  - same as before but now the current view is selected on start
+   - it should be more convenient to select related views
+ - SwitchViewByHistory
+  - alternative that may be more useful, need to test it
+   - inspired partially by ctrl tab behavior in visual studio
+   - needs testing
+ - SwitchToLastView
+  - again tried to match behavior of ctrl tab in visual studio
+   - seems like native ctrl tab behavior of revit view switching when history order is turned on breaks it (GetOpenViews method may be returning them in wrong order)
+    - a workaround might be switching ctrl tab to tab order and relying solely on my implementation
+    - revit won't let you assing ctrl tab to it however
+    - maybe there is some way to override it in c#?
+- split DataGrid into two files
+ - used partial keyword to split class without renaming
+*** 09
+**** =18:00= CreateDetailViewsFromSheetNames
+- started
+**** =18:28= DataGrid1
+- added optional title parameter
+- added double mouse click handling
+**** =19:40= CreateDetailViewsFromSheetNames
+- finished
+** June
+*** 11
+**** =13:00= DuplicateViews
+**** =21:48= CreateFilledRegionsFromRooms
+- initial success after a few unsuccessful attempts that failed mostly due to inability to select room correctly
+- turned out to be very fast
+*** 14
+**** =13:00= DuplicateViews
+- instead of appending "- Copy" made it append "- Copy {timestamp}"
+- conflicts caused the command to fail, there often were existing view with "- Copy" suffix already
+*** 28
+**** =19:00= SaveOpenedViews and OpenSavedViews
+- save currently opened UIViews to open them later (for example after reboot)
+- don't save them in revit model
+ - ravit offers extensible storage framework or shared parameters
+ - save them as a plain text file on the filesystem
+  - one view title per line
+   - assuming view titles are unique
+   - view titles include view type (e.g. area plan, sheet, schedule)
+  - considered %appdata%/local as its a standard location
+   - ended up prompting user to choose location as it allows you to save it on the server
+    - you can take snapshots
+    - you can share it with others
+    - you can open from other machines
+- one command to write and corresponding command to read (SaveOpenedViews and OpenSavedViews)
+**** =20:30= CustomGUI.DataGrid1 SwitchViewByTitle
+- added hotkeys (space in empty searchbox) to quickly switch to next/previous view
+- spacebar to switch to the next view
+- shift spacebar to switch to the previous view
+*** 29
+**** =00:34= InvokeCommand
+- started custom command invoker to provide quick access to increasing number of revit commands
+- also addin manager turned out to copy .dll each time to windows temp folder that never get deleted
+- a better design will be to load dll into memory without going each time through file system
+ - hopefully it won't break any of the scripts
+  - if it does it can be quickly confirmed by running the script via addin manager or load it directly
+- prompt user for a dll location, save this location in appdata text file and unless deleted keep reusing this location
+- hopefully loading it each time on invocation won't be too slow
+**** =01:00= DataGrid2
+- added key handling for enter when focus is on searchbox to select the first entry from the top 
+ - same as it was for DataGrid1
+**** =01:32= DataGrid2
+- fix/hack to prevent width of the form to cut into datagrid when filtering datagrid (by typing in the searchbox)
+ - increased "requiredWidth" in form.Load calculations
+**** =14:11= SwitchToLastView bug fix
+- fixed bug when a view is activated on a sheet SwitchToLastView opens that view separately instead of its sheet
+ - on downside it now won't be able to switch to separate views, but will always open the sheet on which they are placed
+  - if previous behavior is required SwitchViewByHistory can be used instead
+   - since [[*=20:30= CustomGUI.DataGrid1 SwitchViewByTitle][yesterday's hotkey addition (space in empty searchbox)]] it should be a relatively quick to combine them
+    - on my keybindings it would be (w r space) to invoke SwitchViewByTitle and choose the first entry (last view)
+**** =16:33= DataGrid2 bug fix
+- fixed bug where pressing space in searchbox didn't filter datagrid as a list of AND statements
+ - remove rarely used | character handling (OR)
+**** =16:42= DataGrid2 NOT
+- added NOT statement to DataGrid2 for words that start with !exclamation mark in searchbox
+**** =17:17= DataGrid1 NOT
+- added NOT statement to DataGrid1 for words that start with !exclamation mark in searchbox
+**** =17:27= InvokeAddinCommand InvokeLastAddinCommand
+- added InvokeLastAddinCommand as a separate IExternalCommand
+ - this way it can be assigned a hotkey (qq`), which may be useful if a new command needs to be invoked frequently
+- renamed filenames both commands use to save their data
+ - InvokeAddinCommand - %appdata%/revit-scripts/InvokeAddinCommand-last-dll-path
+ - InvokeLastAddinCommand - %appdata%/revit-scripts/InvokeAddinCommand-last-command
+**** =17:44= SwitchToLastView bug fix
+- changed SwitchToLastView behaviour so that when the last view to which you are switching is placed on a sheet AND that sheet is opened only then it opens the sheet instead of the view directly
+**** =18:06= InvokeLastAddinCommand bug fix
+InvokeLastAddinCommand was adding itself as the last invoked command, which led to an infinite loop
+added check to InvokeAddinCommand to prevent this command from ever being saved to %appdata%/revit-scripts 
+**** =18:51= refactoring
+removed "scripts" namespace from all files
+it seemed unnecessary for a loosely coupled collection of revit commands
+**** =20:59= SwitchToLastView bug
+couldn't find a way to detect whether a view is an active view on a sheet or a standalone view
+without knowing for sure the command would cause undesired behavior in various situations
+best effort workaround right now seems to be deactivating 
+**** =21:39= SwitchToLastView bug
+can't find a way to deactive view before switching to another view
+switching to sheet from an active view via uidoc.ActiveView = targetSheet doesn't work (nothing happens)
+Postcommand doesn't work (nothing happens) when run before switching view
+**** =22:16= OpenSheet
+this command is the lowest common working hack for the SwitchToLastView bug
+it opens the sheet of a currently active view and closes the standalone view, which is necessary for the uidoc.GetOpenUIViews to work
+it's only use is meant to be when you forget to deactive view before switching and you need to quickly get back
+*** 30
+**** =10:57= LogViewChanges
+due to bugs in uidoc.GetOpenUIViews added an IExternalApplication that logs all view changes to a file
+**** =11:25= LogViewChanges
+added automatic cleanup on each view change 
+heuristic if more than 200 lines truncate to 100
+**** =11:58= OpenViews
+removed unopenable views (ViewTemplates, ProjectBrowser and SystemBrowser) from the list
+**** =12:12= SwitchToLastView
+changed SwitchToLastView to read from file created by LogViewChanges instead of using uidoc.GetOpenUIViews
+**** =12:30= SwitchView refactor
+moved SwitchViewByTitle SwitchViewByHistory and SwitchToLastView to separate .cs files as they weren't sharing enough anymore
+**** =13:00= SwitchViewByHistory
+changed SwitchViewByHistory to read from file created by LogViewChanges instead of using uidoc.GetOpenUIViews
+**** =14:00= LogViewChanges SwitchViewByTitle
+first I considered making LogViewChanges CleanUp function only trigger OnStartup to preserve all changes in the current session
+ this limits usage of LogViewChanges file, but it shouldn't be a problem to create a separate one if any specific use case come up
+ made SwitchViewByTitle read 
+ this is a hack - it assumes that users will rarely close sheets
+  if a user closes a sheet and expects the command to not move a user back to that sheet, it will anyway
+  best workaround would be for the user to deactivate views each time 
+**** =15:00= LogViewChanges SwitchViewByTitle
+then I looked into DocumentChanged event, but this only provide added, modified and deleted events to elements
+ closing views doesn't trigger any of these events
+**** =16:00= LogViewChanges SwitchViewByTitle
+then I thought about discerning if a sheet was closed by comparing number of opened views (previous sessions sheets cleaned up on startup) and check which is missing
+however user might have accidentally opened a sheet and now user would be forced to open sheet anyway
+**** =17:00= LogViewChanges SwitchViewByTitle
+then I though about giving up and always opening sheets
+if it won't be solved upstream and I can't find a viable workaround this is it, it's not a terrible tradeoff
+ it's better than accidentally opening separate views
+it seemed that this work went in vain, but using ViewActivated event instead of pulling information out of GetOpenUIViews makes the script synchronized with switching views via ctrl tab (and other revit UI navigations)
+**** =17:30= LogViewChanges SwitchViewByTitle
+finally I decided to mandate usage of custom functions to close views
+ CloseCurrentView and CloseViews
+ LogViewChanges was modified to remove all entries from %appdata%/revit-scripts/LogViewChanges OnStartup
+ LogViewChanges was modified to remove duplicate entries after inserting a new entry at the end
+ if this fails the only repercussion really is that sheet will be opened instead of a view
+if accidentally a view gets removed in another way, they can be manually removed in %appdata%/revit-scripts/LogViewChanges
+ if you don't know what views changed you can make a diff by exporting all current views with SaveOpenedViews command
+  this may miss some sheets, but may be good enough
+**** =18:30= OpenViews SwitchViewByTitle
+added OrderBy LINQ method to sort both methods alphabetically
+**** =18:30= LogViewChanges SwitchViewByTitle CloseViews CloseCurrentView SwitchViewByHistory
+modified these functions so they add, edit and remove entries from an external file instead of using uidoc.GetOpenUIViews (due to above mentioned bug with views activated on sheets)
+drawback is if user closes views it won't be captured in this system, so some inconsistencies may come up
+ I'm hoping that closing views won't be a frequent operations
+switching views and opening views will be reflected in both revit and this LogViewChanges
+**** =18:50= OpenViews
+added initialindex to OpenViews
+copied verbatim from SwitchViewByTitle
+**** =18:55= SwitchToLastView
+performance is noticeably slower than before
+couldn't find any performance improvements in the current approach (read file and query FilteredElementCollector)
+possibly storing ID as well as title in instead of title could make use of doc.GetElement method that was used previously and seemed faster
+cache could solve it - cache mechanism in revit process memory to reflect contents of LogViewChanges file
+**** =18:55= SwitchToLastView
+improved performance of SwitchToLastView by storing ID together with title in LogViewChanges and reading it with GetElement to get the correct View element instead of using FilteredElementCollector
+this required however changes to LogViewChanges SwitchViewByTitle CloseViews CloseCurrentView SwitchViewByHistory commands to parse correctly the new format
+**** =20:14= SwitchToLastView bug fix
+when view changes between projects or between families script didn't work as it tried to read a view id from another family/project
+hacky solution is to iterate through all IDs in the most recent order until one works
+intention is for SwitchToLastView to always switch to the last view withing the same project
+ctrl tab builtin in revit can be then used to switch between views between projects/families
+** July
+*** 07
+**** =13:24= LogViewChanges file name
+previously file got cleared when another revit session was started
+LogViewChanges was changed to create a separate file with project name instead, so multiple projects can use separate files
+this should also fix the previous issue where SwitchToLastView was confused about views from other documents (families/projects)
+LogViewChanges SwitchViewByTitle SwitchViewByHistory SwitchToLastView CloseCurrentView and CloseViews changed
+**** =15:30= OpenLastSessionViews added
+instead of having to use SaveOpenedViews and OpenSavedViews new command was added OpenLastSessionViews that uses LogViewChanges file (for the corresponding project)
+I've kept forgetting about running SaveOpenedViews at the end of the day
+clearing file contents of the previous session in LogViewChanges was moved from OnStartup method to OnDocumentOpened, due to availability of the document title variable
+previous sessions from revit can be used to restore views, because it gets copied to a .bak file OnDocumentOpened event
+LogViewChanges files for families get deleted when documents is closing
+ there would be too many of them and they usually don't contain many views
+*** 13
+**** =12:52= TraceAllLines
+added TraceAllLines to avoid exploding DWG file and cluttering the project with linestyles,patterns etc.
+**** =15:31= TraceAllLines
+at first it seemed fast, but adding subsequent curves to the document became increasingly slower
+ first curve only 3ms, but 1500th curve already at 200ms
+ tried using directshape, but they are not allowed in a family
+ unable to find a solution to the performance bottleneck
+  will try exploding CAD and cleaning up instead
+  turns out no scripting is needed, cleaning up can be done manually by selecting corresponding element and changing types
+   then copying to a fresh family that will import only the copied types
+**** =19:53= NewFamily
+added a simple script that just invokes NewFamily command
+I couldn't find a way to automatically open and activate a family template
+this is best I could get
+*** 14
+**** =12:43= NewFamilyDetailItem
+confirmed that OpenAndActivateDocument doesn't work with family templates
+[[https://forums.autodesk.com/t5/revit-api-forum/open-and-activate-new-family-document-from-standard-template/td-p/12895840][source]]
+*** 17
+**** =18:00= SelectElementsWithSameCommentInCurrentView added
+*** 18
+**** =09:00= SwitchViewByTitle bug
+couldn't switch to the next view after pressing space on the first try
+it worked on the second try
+possible discrepancy in the LogViewChange file?
+**** =21:12= ListFamilyTypes methods added
+ListAllFamilyTypesSpanAllScreens, ListAllFamilyTypesInView and ListSelectedFamilyTypes
+added to match corresponding methods that list instances
+as a lucky side effect this method actually selects family type element that can be then used to select all instances in view/project
+these methods came out of necessity to quickly list changes to types of detail items (drywalls)
+*** 19
+**** =11:06= ExportKeynoteSchedule method added
+the process had to be repeated enough times to warrant automating it
+export path is saved to %appdata%/revit-script/ExportSchedule - {schedule name}
+*** 21
+**** =19:02= ExportSchedule minor tweaks
+renamed from ExportScheduleCommand
+entries like <Keynote Schedul N> and Keynote Legend N are filtered out
+ these are presumably created by Revit from keynote schedule generated on the sheets
+**** =19:02= CustomGUI.DataGrid2 sorting
+added sorting on the first column when user filters the list by typing in searchbox
+ previously entries were going out of order for some reason
+*** 22
+**** =20:47= DrawCropRegion started
+couldn't find where children detail views were located, because they were usually hidden in the parent view
+this function was meant to draw their rectangles and select them, but it only crops current view
+I kept running in issues in view cropregion points not being coplanar
+limited usability
+**** =21:22= DrawCropRegion developed
+managed to draw and select lines around crop region by drawing everything that doesn't throw an exception between the crop region points
+previous issues must have been cause by incorrect projections of the crop region box
+it's a messy solution but for this purpose it works fine
+**** =21:47= DrawCropRegion developed
+made it work for multiple views in one command
+made it select the created after command finishes
+this allows to easily delete them afterwards or to zoom in to that view (ZoomToSelected command)
+*** 23
+**** =09:06= DrawCropRegion developed
+corrected the code to draw proper rectangle around the crop region instead of haphazardly connecting points
+[[https://forums.autodesk.com/t5/revit-api-forum/draw-cropregion-in-the-current-view/m-p/12913443][got advice on the forum]] to use ViewCropRegionShapeManager to get the right crop region orientation
+**** =18:55= SectionBox3DFromView added
+more convenient than going through the list prompted by revit in its cube gizmo, especially on larger projects
+doesn't quite work yet - orientation of the resulted section box seems to be rotate on X axis
+**** =19:42= SectionBox3DFromView stuck
+further attempts to fix incorrect rotation of the sectionbox didn't solve anything
+asked for help on the forum
+**** =21:39= ExpandSectionBox added
+finally a command that works on the first try! it started getting really frustrating
+it's not that important though, just resizes section box (3d only) by a custom amount
+*** 24
+**** =15:20= ListSheetsByGlobalRevision added
+in response to inability to find exactly which sheets had a global revision assigned
+couldn't schedule neither sheets nor titleblocks in revit out of the box
+unusually revit silently crashed not too long after this command run 
+fortunately I synced just before that
+presumably it was cause by attaching debugger to revit
+**** =22:16= SectionBox3DFromCurrentView added
+simplifies usage of SectionBox3DFromViewList (renamed) as usually you want to inspect a view that is currently already selected or active
+slight uncertainty about choosing the right view - there is no Revit API command, so had to find it by obtaining username and appending it to {3D - username} format
+ if view doesn't exist the script aborts, which might break it in the future if Revit team decides on a different convention
+**** =23:38= ListSheetsByGlobalRevision and CustomGUIs.DataGrid2 modification attempt
+I've tried adding optional parameter to CustomGUIs.DataGrid2 to set initially selection, but none of the two approaches worked
+firstly trying DataGrid1 didn't display entries
+secondly DataGrid2 didn't display correct revisions
+gave up and reverted to the original working state - list works, but doesn't display initially selected revisions on the current sheet
+** August
+*** 03
+**** =17:56= TagSelectedElements command added
+a simplified method of tagging selected objects
+takes into account scale of the active view
+similar to the builtin tag placing command it uses the last used tag type
+**** =19:59= TagElementsInSelectedViews and TagElementsInViews commands added
+they may streamline tag placement in larger number of views where elements have consistent shape
+uses code from TagSelectedElements command
+**** =20:55= TagElementsInSelectedViews and TagElementsInViews developed
+usability improvements
+testing
+added category and family columns for clarity
+ all three columns are needed
+*** 07
+**** =12:06= ListSheetsByDetailItemSelected command added and FamilyReferences command renamed to ListViewsByDetailItemSelected
+many views listed by ListViewsByDetailItemSelected (previous FamilyReferences) weren't useful as they weren't officially issued
+it became more common to navigate the project by sheet names/numbers rather than view names
+view names often were secondary and unkept (copied from other views without renaming as only their "title on view" parameter was being changed)
+**** =12:25= rename and refactor project
+renamed from revit-scripts to revit-motions
+contents of a separate "scripts" folder dumped into top level directory
+top folder and .csproj .csproj.user and .sln files renamed accordingly
+paths in .sln changed accordingly
+tested recompiling and run InvokeAddinCommand - both passed
+backup with previous setup created
+**** =12:54= change GUI ListSheetsByDetailItemSelected command and set initial selection
+change from ListBox to CustomGUI.DataGrid1
+ DataGrid2 didn't have initial selection parameter yet
+initial selection set to be sheet on which currently active view is placed
+ this should help when going sheet-by-sheet making changes to all detail items
+recorded demo
+*** 19
+**** =01:31= added SetCustomScaleParameterForSheets command
+took a number of tries due to minor issues with chatgpt
+returns list of sheets that couldn't be updated at the end if views with multiple scales were placed on a sheet
+**** =12:58= added ToggleWallsLocationLineFromFinishFaceExteriorToFinishFaceInterior command
+works only with Finish Face Interior and Finish Face Exterior
+  a more general solution would be useful
+there wasn't a builtin shortcut and clicking buttons was too cumbersome
+mentioned [[https://forums.autodesk.com/t5/revit-architecture-forum/shortcut-to-change-quot-location-line-quot/td-p/9923891][on the forum]]
+**** =17:09= tried adding DrawRevisionCloudAroundSelectedElements command, but couldn't get it to work
+unsolved issues
+  place revision cloud exactly over viewport elements
+    just didn't work, no matter what I did, placing them always somewhere else
+  merge curves together into combined loops (Boolean union)
+some issues could have been solved
+  drawing revision cloud outside of the current view, in the sheet on which active view was placed
+  one rectangle around all selected elements instead of multiple rectangles around individual elements
+  reordering points of the rectangle so the revision cloud "points outwards" instead of "inwards"
+**** =20:34= added PasteSelectedElementToViews
+simply pastes selected element to selected Views
+  should be equivalent of "Paste to Current View" in Revit UI
+*** 21
+**** =16:00= renamed ListSheetsByGlobalRevision to ListSheetsByRevision
+realized that all revisions are "global"
+they can "per project" or "per sheet", but all are first available globally
+perhaps another command "ListSheetsByRevisionOnCurrentSheet" or "ListSheetsByRevisionOnSheets"
+**** =18:20= added five commands to List and Set revisions on sheets grouped by global revisions and filtered by whether they are set by cloud or by sheet
+tailored for our specific workflow with per-sheet revisions
+  it's quite common to accidentally assign revisions by cloud
+    by cloud means first drawing a cloud around an area and then assigning it a revision
+    this seemingly sets revision on the sheet, but it disappears when clouds get deleted
+    it has been argued that we shouldn't be deleting clouds
+      on the other hand someone might unknowingly delete a revision cloud and break the log
+      in this case this method is more robust
+  to avoid this we always set revisions by sheet (button in properties panel) and then repeat the above steps
+  it can be cumbersome however to return the clouds back to be by sheet if they were already assigned by cloud
+  scripts below help you manage that by "forcing" revision into sheet, as well as listing sheets with given revisions where they were assigned by cloud
+SetRevisionsToSheets, SetRevisionsToSheetsWhereRevisionIsByCloud, SetRevisionsToSheetsWhereRevisionIsByCloudOrBySheet
+ListSheetsByRevisionsWhereRevisionIsByCloud
+set commands work like this:
+  select revisions, select sheets and set these revisions to these sheets
+  WhereRevisionIsByCloud
+list commands work the same, but open sheets instead of setting ("forcing") revisions
+ListSheetsByRevisions already existed, but I've made it work for multiple selected revisions
+**** =18:55= added optional initialSelectionIndices parameter to DataGrid2
+used it in the above commands manipulating revisions to select the last entry by default on start
+  due to amount of revisions the list always took a long time to navigate
+  the most recent and so usually most relevant revisions always appeared at the bottom
+  listing them in reverse order would be counterintuitive, because that's also how they appear in revit ui
+it was already present and implemented in DataGrid1
+**** =21:47= modifed Enter key handling of CustomGUIs.DataGrids
+previously Enter key press in searchbox caused only the first entry to be selected instead of the current datagrid selection
+not sure if this breaks any workflow, if it does perhaps a better way would be to handle it this way only if searchbox is empty
+*** 27
+**** =13:18= IncrementSheetNumbers
+finished IncrementSheetNumbers
+  scaringly enough first iteration for some reason broke undo button
+  second iteration worked though
+it prompts one dialog for sheet selection and second dialog for increment integer
+  can be negative
+** September
+*** 11
+**** =12:23= MoveSelectedViewsToSheet added
+uses currently selected views on sheet and places them on another sheet in the same locations
+*** 18
+**** =14:38= SetParameterValueToSelectedFamilyTypesInCurrentFamily added
+only works in family editor
+sets value of a selected parameter to selected family types
+in response to an [[https://forums.autodesk.com/t5/revit-architecture-forum/family-parameters-instead-of-family-type-parameters/m-p/13028164#M431225][autodesk forum discussion]]
+generated with [[https://chatgpt.com/share/66ead4d9-7ef4-800c-bf14-64982a2d24c8][chatgpt]]
+  model o1-preview
+  tried also [[https://chatgpt.com/share/66ead517-9430-800c-9543-960ad94d2631][o4 model]], but didn't finish it and wanted to try new one instead after first few tries were unsuccessful
+**** =14:44= CustomGUI.DataGrid bug fixed
+empty row was appearing in the datagrid list, which sometimes caused errors in some commands
+turned out that this was an option in WinForms that needed to be disabled
+this was on so user could enter new rows
+  which made me wonder if I didn't choose wrong GUI framework, as these datagrid are only used to reading/selecting
+    perhaps I will use them to change data later on as well then
+chatgpt at the end of the previous conversation suggested this change ([[https://chatgpt.com/share/66ead4d9-7ef4-800c-bf14-64982a2d24c8][source]])
+**** =23:55= SetRevisionsToCurrentSheet added
+variation on SetRevisionsToSheets series of commands
+made of convenience
+*** 19
+**** =17:14= couldn't write ListLegendSheetsCommand
+couldn't find a way to list sheets on which a legend was placed
+[[https://chatgpt.com/share/66ec4e53-9918-800c-a151-2eeedd675033][chatgpt]]
+**** =20:31= got ListLegendSheetsCommand to work
+[[https://forums.autodesk.com/t5/revit-api-forum/list-all-sheets-on-which-a-legend-is-placed/m-p/13031606][autodesk forum discussion]]
+initial selection was incorrectly assuming view - it was in fact viewport (legend placed on a sheet)
+*** 23
+**** =21:51= added ImportElementsFromLinkedModel command
+generalization of previoius prototype copying all element of a certain type from a selected linked model
+*** 24
+**** =11:52= added ListTypesInSelectedCategory command
+ordinary ListTypes was too slow and I couldn't find a way to cancel the operation risking crashing the model
+instead qualified it to specify a category first, however this still proved to be slow in our model
+*** 25
+**** =14:23= scaling factor input form in Resize3DSectionBox command modified
+instead of using predetermined values it prompts for an arbitrary floating value, which is then used to resize (expand/shrink) section view (only in 3d view)
+**** =16:26= same as [[*=14:23= scaling factor input form in Resize3DSectionBox command modified][above]], but for Resize3DSectionBoxVertically and Resize3DSectionBoxHorizontally
+**** =21:04= ListSheets command added
+lists all sheets with all of their parameters
+useful for debugging sheet revisions, titles, scales etc.
+**** =21:15= updated SetRevisionsToSheets command
+added "current revision issued to" column
+  this is incorrect, because other projects likely don't use that parameter
+  I've kept both this and probably more correct "Current Revision"
+should be useful to avoid adding revision with a wrong number
+**** =22:45= updated ListSheets to only 5 and move version with all parameters to a separate ListSheetsWithAllParameters command
+listing all parameters is often too slow and in these 5 parameters can be sufficient for many use cases (hopefully)
+**** =22:56= added DeleteRevisionCloudsFromSheets command
+first command that deletes object in Revit, a bit dangerous, but I double checked the code
+made it also delete revision clouds in views if views were placed on these sheets and had revision clouds in them
+it's slower than I expected, cleaning all flat plans (circa 50 sheets) took about a minute
+  perhaps that's due to extra check to look for revision clouds in the views
+**** =23:56= added ListFamilyTypesInCurrentView command
+equivalent of [[*=21:12= ListFamilyTypes methods added][ListFamilyTypesInCurrentProject]], but shows and selects only elements visible in current view
+**** =00:08= fixed DrawRevisionCloudsAroundSelectedElements command
+now revision clouds are being placed in the correct place (or close enough)
+  clouds are being placed on sheets but based on location of selected elements in the view and view's postition on the sheet
+couldn't get the cloud to use the most recent revision on a sheet
+stil isn't able to properly combine curveloops tightly around selected objects, but if elements are separate it seems to work well
+  we'll see about that as we use it...
+*** 30
+**** =15:12= added SelectModelGroups and updated SelectCategoriesInView commands
+SelectCategoriesInView now preserves selection of previous elements
+  previously it deselected them and made a new selection
+**** =15:22= updated ListFamilyTypesInCurrentView and ListFamilyTypesInCurrentProject
+renamed with Select- prefix and made it so that previous selection is preserved
+**** =15:22= updated SelectLinkedModels command so that it also doesn't deselect any exsiting elements
+** October
+*** 01
+**** =11:04= SelectAssociatedDimensions command added
+took me over the limit of chatgpt o1-preview, but got it to display total length column correctly
+  got to the rest of minor amendments to the code via older 4o model
+  haven't reviewed the code, only checked if results are correct
+    based on only about a dozen examples
+adding extra check for sheet name (in additino to owner view name) seemed to have added extra latency, but I'd rather not split it into two commands for a seemingly minor speed improvement
+once datagrid of dimensions is generated it can be copy pasted into files and compared for any before-after differences
+  for example when changing family types dimensions may silently snap to another position
+    errors when dimensinos change only pop up when they get deleted
+**** =13:20= DataGrid2 CustomGUI updated
+updated handling of || and ! operators in filtering textbox widget
+**** =16:19= added corresponding commands for selecting family types instead of family type instances 
+SelectFamilyTypesInCurrentView and SelectFamilyTypesInProject were renamed to SelectFamilyTypeInstancesInCurrentView SelectFamilyTypeInstancesInProject
+*** 02
+**** =11:51= fixed SwitchViewByTitle to show sheet as an initial selection when an view on a sheet is active
+*** 03
+**** =10:50= fixed DataGrid1 Enter KeyDown handling
+for some reason pressing Enter in SeachBox didn't work
+**** =14:21= trying to fix mapping from viewport space to sheet space
+proof-of-concept almost works, it only fails when view has been modified by transforming it by its crop region
+  I sometimes use this as well to quickly shift a view
+  it is being used to rotate a view as well
+presumably this affects transformation of the view in a way which viewport.GetProjectionToSheetTransform method doesn't account for
+I'm looking for hints about these transformation in view element itself
+  rather than on viewport
+possibly it might get stored in view crop boundary as well
+**** =14:43= script to print transformation of a view didn't show any difference before and after moving a view by its crop region, but script to print transformation of crop region did
+**** =15:00= paused further attempts for now as I couldn't prompt chatgpt to account for cropbox transformation
+*** 04
+**** =19:25= fixed LogViewChanges
+it kept cluttering revit-scripts folder
+placing it into a separate folder and preventing it from logging if document if a family
+  don't see a need for it in something as simple as a family
+  looks like they were meant to be deleted OnDocumentClosing, but it didn't work
+    then again why create them in the first place if they are going to be deleted
+took me in total only about 20-30 minutes to finish implementing it
+  feared it might have taken longer, because debugging of any potential issues would require restarting revit
+***** affected commands
+path change, folder added
+- SwitchView, SwitchViewByHistory, SwitchToLastView
+- CloseCurrentView, CloseViews
+- OpenLastSessionViews
+***** =19:55= tests
+log files for families are correctly not being created
+all commands continue working as intented
+I've realized that "LogViewChanges -" prefix is now redundant as folder is used instead
+  need to change that everywhere now again
+  =20:05= finished updating and testing, all works fine
+*** 09
+**** =11:58= regression in customgui.datagrid2 searchbox
+spacebar search AND operator stoppoed working - requries prompt fixing
+customgui.datagrid1 works fine
