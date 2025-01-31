@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 [Transaction(TransactionMode.Manual)]
-public class SelectDetailGroups : IExternalCommand
+public class SelectDetailGroupsInCurrentView : IExternalCommand
 {
     public Result Execute(
         ExternalCommandData commandData,
@@ -15,9 +15,10 @@ public class SelectDetailGroups : IExternalCommand
         UIApplication uiApp = commandData.Application;
         UIDocument uidoc = uiApp.ActiveUIDocument;
         Document doc = uidoc.Document;
+        View currentView = doc.ActiveView;
 
-        // Get all detail group instances in the project
-        var detailGroupInstances = new FilteredElementCollector(doc)
+        // Get all detail group instances in the current view
+        var detailGroupInstances = new FilteredElementCollector(doc, currentView.Id)
                                     .OfCategory(BuiltInCategory.OST_IOSDetailGroups)
                                     .WhereElementIsNotElementType()
                                     .Cast<Group>()
@@ -25,11 +26,11 @@ public class SelectDetailGroups : IExternalCommand
 
         if (detailGroupInstances.Count == 0)
         {
-            TaskDialog.Show("Error", "No detail groups found in the project.");
+            TaskDialog.Show("Error", "No detail groups found in the current view.");
             return Result.Failed;
         }
 
-        // Get unique group types from all instances in the project
+        // Get unique group types from the instances in the current view
         var detailGroupTypes = detailGroupInstances
                                 .Select(g => g.GroupType)
                                 .Distinct()
@@ -76,14 +77,14 @@ public class SelectDetailGroups : IExternalCommand
                 return Result.Failed;
             }
 
-            // Get instances of the selected GroupType in the project
+            // Get instances of the selected GroupType in the current view
             var groupInstances = detailGroupInstances
                                 .Where(g => g.GroupType.Id == selectedGroupType.Id)
                                 .ToList();
 
             if (groupInstances.Count == 0)
             {
-                TaskDialog.Show("Error", $"No instances of the selected group type: {selectedGroupType.Name} found in the project.");
+                TaskDialog.Show("Error", $"No instances of the selected group type: {selectedGroupType.Name} found in the current view.");
                 continue; // Continue checking the other selected groups
             }
 
